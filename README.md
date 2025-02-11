@@ -113,13 +113,14 @@ Once training is complete, you can evaluate the fine-tuned model.
 
 ```bash
 python eval_lora_orpo_rlaif.py \
-    --model_path ../../llava1.6-mistral-7b \
+    --model_path llava1.6-mistral-7b \
     --checkpoint_path ./llava1.6-mistral-7b-RLAIF-V-ORPO/checkpoint-99000 \
     --dataset_path ./rlaif-v-validation-only \
     --batch_size 512 \
     --report_wandb \
     --evaluate_original False
 ```
+This evaluation script reports key performance metrics, including F1-score and ROUGE, to assess the fine-tuned model’s quality.
 
 ---
 
@@ -130,7 +131,7 @@ Before deployment, you need to merge the LoRA adapter with the base model:
 
 ```bash
 python -m peft.merge_adapters \
-    --base_model_path ../../llava1.6-mistral-7b \
+    --base_model_path llava1.6-mistral-7b \
     --lora_adapter_path checkpoints/llava1.6-mistral-7b-finetune_lora \
     --output_path checkpoints/llava1.6-mistral-7b-merged
 ```
@@ -142,7 +143,7 @@ This will create a fully merged model in `checkpoints/llava1.6-mistral-7b-merged
 
 ## 📜 License
 
-Users must comply with any **dataset/model-specific** licensing agreements.
+This project follows the Apache 2.0 License. Users must comply with any dataset/model-specific licensing agreements.
 
 ---
 
@@ -156,14 +157,4 @@ This work builds upon:
 
 ---
 
-## 📣 Citation
-
-If you use like this, please star this repository
-
-
----
-
-## 💡 Contact
-
-For questions, open an **issue**.
 
