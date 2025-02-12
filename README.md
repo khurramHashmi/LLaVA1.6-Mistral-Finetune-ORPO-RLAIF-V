@@ -18,7 +18,7 @@ This repository is a **fork** of the original [LLaVA](https://github.com/haotian
 
 ---
 
-## 🎥 Gradio Video Demo
+## 🎥 Gradio Demo of LLaVA1.6-Mistral-7b aligned with ORPO on RLAIF-V Validation set
 
 ![Gradio Demo](gradio_demo.gif)
 
