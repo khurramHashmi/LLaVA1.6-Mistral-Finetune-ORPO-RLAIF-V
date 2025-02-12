@@ -1,6 +1,6 @@
 # 🌋 LLaVA 1.6 - Mistral 7B Fine-Tuning with ORPO on RLAIF-V
 
-This repository is a **fork** of the original [LLaVA](https://github.com/haotian-liu/LLaVA) project, modified to **fine-tune LLaVA 1.6 Mistral-7B** using **ORPO** on the **RLAIF-V dataset** with **LoRA**. This approach enhances multimodal understanding by leveraging reinforcement learning with AI feedback (RLAIF) while keeping training efficient with LoRA.
+This repository is a **fork** of the original [LLaVA](https://github.com/haotian-liu/LLaVA) project, modified to **fine-tune LLaVA 1.6 Mistral-7B** using **ORPO** on the **RLAIF-V dataset** with **LoRA** and **QLoRA**. This approach enhances multimodal understanding by leveraging reinforcement learning with AI feedback (RLAIF) while keeping training efficient with parameter-efficient fine-tuning techniques.
 
 ---
 
@@ -8,14 +8,15 @@ This repository is a **fork** of the original [LLaVA](https://github.com/haotian
 
 - **Fine-Tune LLaVA 1.6 Mistral-7B** on the **RLAIF-V dataset**
 - **Optimized Rank Preference Optimization (ORPO)** for alignment
-- **LoRA fine-tuning** for efficient model adaptation
+- **LoRA & QLoRA fine-tuning** for efficient model adaptation
 - **Support for xFormers & FlashAttention** to reduce memory overhead
 - **Evaluation scripts for LoRA fine-tuned models**
 - **Dataset preparation based on `create_splits.py`**
+- **Interactive Gradio demo for inference**
 
 ---
 
-## 📦 Installation
+## 📚 Installation
 
 ### 1️⃣ Clone the Repository
 
@@ -49,6 +50,8 @@ git clone https://huggingface.co/liuhaotian/LLaVA-1.6-Mistral-7B checkpoints/lla
 
 ---
 
+---
+
 ## 📊 Dataset Preparation
 
 This fine-tuning pipeline uses the **RLAIF-V dataset**, which is processed using `create_splits.py`.
@@ -62,18 +65,26 @@ This fine-tuning pipeline uses the **RLAIF-V dataset**, which is processed using
    ./rlaif-v-train-only/
    ./rlaif-v-validation-only/
    ```
-3. Ensure dataset paths are correctly referenced in `finetune_orpo_lora.py`.
+3. Ensure dataset paths are correctly referenced in `train_orpo.py`.
+
+To incorporate **HH-RLHF**, download and process it:
+
+```bash
+python download_hh-rlhf_dataset.py
+```
+
+This will save the dataset locally for joint training.
 
 ---
 
 ## 🎯 Fine-Tuning LLaVA 1.6 Mistral-7B
 
-### 1️⃣ LoRA Fine-Tuning with ORPO
+### 1️⃣ Fine-Tuning with LoRA or QLoRA
 
 Run the fine-tuning script with the required arguments:
 
 ```bash
-python finetune_orpo_lora.py \
+python train_orpo.py \
     --train_data_path ./rlaif-v-train-only \
     --val_data_path ./rlaif-v-validation-only \
     --model_name ../../llava1.6-mistral-7b \
@@ -96,16 +107,27 @@ python finetune_orpo_lora.py \
     --max_length 2048
 ```
 
-#### 🛠 Fine-Tuning Configurations
+To enable **QLoRA**, add the following flag:
+```bash
+--use_qlora
+```
+
+
+For joint training with **HH-RLHF**, use:
+```bash
+python train_orpo_RLAIF_HH-RLHF.py
+```
+
+#### 🤦 Fine-Tuning Configurations
 
 - **Model Checkpoints**: `checkpoints/llava1.6-mistral-7b-finetune`
 - **LoRA Adapters**: `checkpoints/llava1.6-mistral-7b-finetune_lora`
-- **Training Script**: `finetune_orpo_lora.py`
-- **Hyperparameters**: Configurable inside `finetune_orpo_lora.py`
+- **Training Script**: `train_orpo.py`
+- **Hyperparameters**: Configurable inside `train_orpo.py`
 
 ---
 
-## 🔬 Model Evaluation
+## 📝 Model Evaluation
 
 Once training is complete, you can evaluate the fine-tuned model.
 
@@ -138,6 +160,26 @@ python -m peft.merge_adapters \
 
 This will create a fully merged model in `checkpoints/llava1.6-mistral-7b-merged`.
 
+---
+
+## 🌟 Gradio Demo
+
+You can test your fine-tuned model using Gradio with:
+
+```bash
+pip install --upgrade gradio fastapi pydantic
+```
+
+Run the Gradio application:
+
+```bash
+python gradio_app.py \
+    --base_model_path ../../llava1.6-mistral-7b \
+    --lora_weights_path ./llava1.6-mistral-7b-RLAIF-V-ORPO/checkpoint-99000 \
+    --share
+```
+
+This launches an interactive UI for testing the fine-tuned multimodal model.
 
 ---
 
@@ -147,14 +189,14 @@ This project follows the Apache 2.0 License. Users must comply with any dataset/
 
 ---
 
-## 🙌 Acknowledgements
+## 👌 Acknowledgements
 
 This work builds upon:
 
 - **[LLaVA](https://github.com/haotian-liu/LLaVA)** for multimodal instruction tuning.
 - **[Mistral 7B](https://huggingface.co/mistralai/Mistral-7B)** as the base LLM.
 - **[RLAIF-V Dataset](https://example.com)** for AI feedback-based fine-tuning.
+- **[HH-RLHF Dataset](https://example.com)** for improving model alignment.
 
 ---
-
 

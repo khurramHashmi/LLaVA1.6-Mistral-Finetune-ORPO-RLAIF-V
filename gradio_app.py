@@ -1,3 +1,4 @@
+import argparse
 import gradio as gr
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
@@ -7,19 +8,24 @@ from llava.constants import IMAGE_TOKEN_INDEX, DEFAULT_IMAGE_TOKEN
 from peft import PeftModel
 from PIL import Image
 
-# Paths to model
-base_model_path = "../../llava-v1.6-mistral-7b"  # e.g., "liuhaotian/llava-1.6-mistral-7b"
-lora_weights_path = "./llava-v1.6-mistral-7b-RLAIF-V-ORPO/checkpoint-99000"  # e.g., "./checkpoints/lora_weights"
+# Parse arguments
+parser = argparse.ArgumentParser(description="Gradio Interface for Fine-Tuned LLaVA Model")
+parser.add_argument("--base_model_path", type=str, default="../../llava-v1.6-mistral-7b", help="Path to the base model")
+parser.add_argument("--lora_weights_path", type=str, default="./llava-v1.6-mistral-7b-RLAIF-V-ORPO/checkpoint-99000", help="Path to LoRA weights")
+parser.add_argument("--temperature", type=float, default=0.2, help="Sampling temperature")
+parser.add_argument("--max_new_tokens", type=int, default=512, help="Maximum number of tokens to generate")
+parser.add_argument("--share", action="store_true", help="Enable Gradio public sharing")
+args = parser.parse_args()
 
 # Load LLaVA model with vision encoder
 tokenizer, model, image_processor, context_len = load_pretrained_model(
-    model_path=base_model_path,
+    model_path=args.base_model_path,
     model_base=None,  # If not using a separate base model
     model_name="llava-1.6-mistral-7b"
 )
 
 # Load LoRA weights and merge
-model = PeftModel.from_pretrained(model, lora_weights_path)
+model = PeftModel.from_pretrained(model, args.lora_weights_path)
 model = model.merge_and_unload()  # Merge LoRA weights for efficient inference
 
 # Move model to GPU
@@ -32,16 +38,21 @@ def multimodal_response(image, prompt):
     
     # Process text
     inp = DEFAULT_IMAGE_TOKEN + "\n" + prompt
-    input_ids = tokenizer_image_token(inp, tokenizer, IMAGE_TOKEN_INDEX, return_tensors="pt").unsqueeze(0).to(device)
+    inputs = tokenizer_image_token(inp, tokenizer, IMAGE_TOKEN_INDEX, return_tensors="pt")
+    
+    input_ids = inputs.unsqueeze(0).to(device)
+    attention_mask = torch.ones_like(input_ids)  # ✅ Create attention mask
 
     # Generate response
     with torch.no_grad():
         output = model.generate(
             inputs=input_ids,
+            attention_mask=attention_mask,  # ✅ Explicitly pass attention mask
             images=image_tensor,
             do_sample=True,
-            temperature=0.2,
-            max_new_tokens=512
+            temperature=args.temperature,
+            max_new_tokens=args.max_new_tokens,
+            pad_token_id=tokenizer.eos_token_id  # ✅ Prevents unexpected behavior
         )
     
     response = tokenizer.decode(output[0], skip_special_tokens=True)
@@ -60,4 +71,4 @@ iface = gr.Interface(
     description="Test the fine-tuned LLaVA 1.6 Mistral 7B model with both images and text inputs on the RLAIF dataset."
 )
 
-iface.launch(share=True)
+iface.launch(share=args.share)
