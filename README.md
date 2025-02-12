@@ -16,6 +16,16 @@ This repository is a **fork** of the original [LLaVA](https://github.com/haotian
 
 ---
 
+---
+
+## 🎥 Gradio Video Demo
+
+![Gradio Demo](gradio_demo.gif)
+
+---
+
+
+
 ## 📚 Installation
 
 ### 1️⃣ Clone the Repository
